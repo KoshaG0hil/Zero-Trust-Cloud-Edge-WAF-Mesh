@@ -1,0 +1,59 @@
+{
+  "version": "2026.1",
+  "policy_name": "Zero-Trust Edge OWASP Top 10 Core Defense",
+  "rule_groups": [
+    {
+      "id": "A01_BROKEN_ACCESS_CONTROL",
+      "name": "Path Traversal & Directory Climbing",
+      "action": "BLOCK",
+      "risk_weight": 90,
+      "patterns": [
+        "(?i)(\\.\\./|\\.\\.\\\\|%2e%2e%2f|%2e%2e\\/|\\.\\.%2f)",
+        "(?i)(/etc/passwd|/etc/shadow|/proc/self/environ|win.ini|system32)"
+      ]
+    },
+    {
+      "id": "A03_INJECTION_SQLI",
+      "name": "SQL Injection Heuristic Guard",
+      "action": "BLOCK",
+      "risk_weight": 95,
+      "patterns": [
+        "(?i)('\\s*(or|and)\\s*'?\\d*'?\\s*=\\s*'?\\d*)",
+        "(?i)(union(\\s+all)?\\s+select)",
+        "(?i)(sleep\\(\\s*\\d+\\s*\\)|benchmark\\()",
+        "(?i)(;\\s*drop\\s+table|;\\s*delete\\s+from|;\\s*insert\\s+into)"
+      ]
+    },
+    {
+      "id": "A03_INJECTION_XSS",
+      "name": "Cross-Site Scripting (XSS) Sanitization",
+      "action": "BLOCK",
+      "risk_weight": 85,
+      "patterns": [
+        "(?i)<script[^>]*>[\\s\\S]*?<\\/script>",
+        "(?i)(javascript:[\\s\\S]*|data:text/html)",
+        "(?i)(onerror\\s*=\\s*|onload\\s*=\\s*|onclick\\s*=\\s*)"
+      ]
+    },
+    {
+      "id": "A05_SECURITY_MISCONFIG",
+      "name": "Sensitive File Probing & Cloud Metadata",
+      "action": "BLOCK",
+      "risk_weight": 100,
+      "patterns": [
+        "(?i)(169\\.254\\.169\\.254|latest/meta-data|computeMetadata/v1)",
+        "(?i)(\\.env|\\.git/config|web\\.config|\\.aws/credentials)"
+      ]
+    },
+    {
+      "id": "A07_IDENTIFICATION_FAILURES",
+      "name": "Credential Stuffing & Auth Brute-Force",
+      "action": "CHALLENGE_CAPTCHA",
+      "risk_weight": 75,
+      "thresholds": {
+        "max_login_attempts_per_min": 10,
+        "burst_window_seconds": 60
+      }
+    }
+  ]
+}

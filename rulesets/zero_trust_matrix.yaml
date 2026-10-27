@@ -1,0 +1,38 @@
+# Zero-Trust Edge Contextual Risk Scoring Matrix
+version: "2026.1"
+
+risk_thresholds:
+  allow_max_score: 25
+  captcha_challenge_min_score: 26
+  captcha_challenge_max_score: 65
+  honeypot_divert_min_score: 66
+  honeypot_divert_max_score: 85
+  hard_block_min_score: 86
+
+scoring_factors:
+  ip_reputation_bad: 40
+  tor_exit_node: 50
+  public_proxy_vpn: 25
+  high_risk_country: 30
+  rate_limit_exceeded: 45
+  sqli_payload_detected: 90
+  xss_payload_detected: 70
+  path_traversal_detected: 85
+  malicious_bot_user_agent: 60
+  headless_browser_fingerprint: 35
+  missing_security_headers: 15
+  invalid_hmac_signature: 80
+  tampered_jwt_token: 95
+  honeypot_probe_accessed: 100
+
+sanctioned_geo_countries:
+  - "KP" # North Korea
+  - "IR" # Iran
+  - "SY" # Syria
+  - "CU" # Cuba
+
+rate_limiting:
+  standard_rpm_per_ip: 300
+  sensitive_api_rpm_per_ip: 60
+  login_rpm_per_ip: 10
+  ban_duration_minutes: 60

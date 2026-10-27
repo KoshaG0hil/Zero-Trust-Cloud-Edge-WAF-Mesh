@@ -1,0 +1,69 @@
+name: CI/CD Pipeline & Edge Security Verification
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test-and-lint:
+    name: Code Quality & Unit Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Lint with Ruff
+        run: |
+          ruff check src/ tests/
+
+      - name: Run Test Suite with Pytest & Moto
+        env:
+          AWS_ACCESS_KEY_ID: mock-key
+          AWS_SECRET_ACCESS_KEY: mock-secret
+          AWS_DEFAULT_REGION: us-east-1
+        run: |
+          PYTHONPATH=. pytest tests/ -v --cov=src --cov-report=term-missing --cov-report=xml
+
+      - name: Verify CLI Simulation Execution
+        run: |
+          python -m src.cli simulate
+
+      - name: Verify CLI Request Evaluation
+        run: |
+          python -m src.cli evaluate --uri "/api/v1/search" --query "q=tech' UNION SELECT null, username, password FROM users--"
+
+  terraform-validate:
+    name: Terraform IaC Validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.7.0"
+
+      - name: Terraform Format Check
+        run: terraform -chdir=terraform fmt -check
+
+      - name: Terraform Init
+        run: terraform -chdir=terraform init -backend=false
+
+      - name: Terraform Validate
+        run: terraform -chdir=terraform validate

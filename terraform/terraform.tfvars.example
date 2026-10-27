@@ -1,0 +1,9 @@
+aws_region           = "us-east-1"
+environment          = "prod"
+owner                = "Kosha Gohil"
+origin_domain_name   = "origin-api.secure-mesh.example.com"
+rate_limit_threshold = 300
+initial_blocked_ips  = [
+  "198.51.100.250/32",
+  "203.0.113.199/32"
+]

