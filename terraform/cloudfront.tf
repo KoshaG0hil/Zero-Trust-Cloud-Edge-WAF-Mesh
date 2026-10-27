@@ -38,7 +38,7 @@ resource "aws_cloudfront_distribution" "edge_cdn" {
   is_ipv6_enabled     = true
   comment             = "Zero-Trust Protected Edge Distribution"
   default_root_object = "index.html"
-  web_acl_id         = aws_wafv2_web_acl.edge_perimeter.arn
+  web_acl_id          = aws_wafv2_web_acl.edge_perimeter.arn
 
   origin {
     domain_name = var.origin_domain_name
